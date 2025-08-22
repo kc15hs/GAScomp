@@ -1,0 +1,22 @@
+# ---- OS関連 ----
+.DS_Store
+Thumbs.db
+
+# ---- IDE設定（不要）----
+.idea/
+*.iml
+
+# ---- ログ・一時ファイル ----
+*.log
+*.tmp
+
+# ---- Node関連（将来追加時）----
+node_modules/
+npm-debug.log*
+
+# ---- ビルド生成物（将来追加時）----
+dist/
+build/
+
+# ---- 環境変数ファイル（もし使うなら）----
+.env
