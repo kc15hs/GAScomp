@@ -1,6 +1,5 @@
 // ---- ユーティリティ ----
 const yen = v => new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(v);
-const yen2 = v => new Intl.NumberFormat('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -8,53 +7,89 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const price = document.getElementById('price');
 const eff = document.getElementById('eff');
 const people = document.getElementById('people');
-
 const segmentsBox = document.getElementById('segments');
 const addSeg = document.getElementById('addSeg');
 const clearSeg = document.getElementById('clearSeg');
 const sumKm = document.getElementById('sumKm');
-
 const liters = document.getElementById('liters');
 const total = document.getElementById('total');
 const perKm = document.getElementById('perKm');
 const perPerson = document.getElementById('perPerson');
 const warn = document.getElementById('warn');
-
 const resetBtn = document.getElementById('resetBtn');
 const shareBtn = document.getElementById('shareBtn');
 
-// ---- 初期化 ----
-function segRow(kmVal = "") {
+// ---- 区間行生成 ----
+function segRow(data = {}) {
+  const { km = "", start = "", end = "", checked = true } = data;
   const wrap = document.createElement('div');
   wrap.className = 'seg';
   wrap.innerHTML = `
-    <input type="number" inputmode="decimal" step="0.1" min="0" placeholder="区間距離 (km)" value="${kmVal}">
+    <input type="checkbox" class="seg-check" ${checked ? "checked" : ""}>
+    <input type="number" class="seg-km" inputmode="decimal" step="0.1" min="0" placeholder="走行距離" value="${km}">
+    <input type="number" class="seg-start" inputmode="decimal" step="0.1" min="0" placeholder="スタート距離" value="${start}">
+    <input type="number" class="seg-end" inputmode="decimal" step="0.1" min="0" placeholder="エンド距離" value="${end}">
     <button type="button" aria-label="削除">削除</button>
   `;
-  const input = wrap.querySelector('input');
+
+  const check = wrap.querySelector('.seg-check');
+  const kmInput = wrap.querySelector('.seg-km');
+  const startInput = wrap.querySelector('.seg-start');
+  const endInput = wrap.querySelector('.seg-end');
   const del = wrap.querySelector('button');
-  input.addEventListener('input', recalc);
+
+  const onChange = () => {
+    // スタート・エンド両方入力されている場合
+    const startVal = parseFloat(startInput.value);
+    const endVal = parseFloat(endInput.value);
+    if (!isNaN(startVal) && !isNaN(endVal)) {
+      if (endVal >= startVal) {
+        kmInput.value = (endVal - startVal).toFixed(1);
+        kmInput.readOnly = true;
+      } else {
+        kmInput.value = 0;
+        kmInput.readOnly = true;
+      }
+    } else {
+      kmInput.readOnly = false;
+    }
+    recalc();
+    saveState();
+  };
+
+  [check, kmInput, startInput, endInput].forEach(el => el.addEventListener('input', onChange));
   del.addEventListener('click', () => { wrap.remove(); recalc(); saveState(); });
+
   return wrap;
 }
 
-function addSegment(value="") {
-  segmentsBox.appendChild(segRow(value));
+// ---- 区間追加 ----
+function addSegment(data={}) {
+  segmentsBox.appendChild(segRow(data));
   recalc();
   saveState();
 }
 
+// ---- 状態復元 ----
 function fromState(s) {
   if (!s) return;
   price.value = s.price ?? "";
   eff.value = s.eff ?? "";
   people.value = s.people ?? 1;
   segmentsBox.innerHTML = "";
-  (s.kms?.length ? s.kms : [""]).forEach(v => addSegment(v));
+  (s.kms?.length ? s.kms : [{}]).forEach(v => addSegment(v));
 }
 
+// ---- 状態保存 ----
 function saveState() {
-  const kms = [...segmentsBox.querySelectorAll('input')].map(i => Number(i.value || 0)).filter(v => v>=0);
+  const kms = [...segmentsBox.querySelectorAll('.seg')].map(row => {
+    return {
+      checked: row.querySelector('.seg-check').checked,
+      km: parseFloat(row.querySelector('.seg-km').value) || "",
+      start: parseFloat(row.querySelector('.seg-start').value) || "",
+      end: parseFloat(row.querySelector('.seg-end').value) || ""
+    };
+  });
   save('gas-calc', {
     price: Number(price.value || 0),
     eff: Number(eff.value || 0),
@@ -63,10 +98,15 @@ function saveState() {
   });
 }
 
-// ---- 計算 ----
+// ---- 再計算 ----
 function recalc() {
-  // 合計距離（※往復チェックは削除 → 片道固定）
-  let km = [...segmentsBox.querySelectorAll('input')].reduce((a,i)=>a + Number(i.value || 0), 0);
+  let km = 0;
+  [...segmentsBox.querySelectorAll('.seg')].forEach(row => {
+    const check = row.querySelector('.seg-check').checked;
+    if (!check) return;
+    km += parseFloat(row.querySelector('.seg-km').value) || 0;
+  });
+
   sumKm.textContent = km.toFixed(1);
 
   const p = Number(price.value || 0);
@@ -84,10 +124,10 @@ function recalc() {
     return;
   }
 
-  const needL = km / e;                 // 必要燃料
-  const cost = needL * p;               // 合計費用
-  const perKmVal = p / e;               // 1kmあたり
-  const perPersonVal = cost / n;        // 1人あたり
+  const needL = km / e;
+  const cost = needL * p;
+  const perKmVal = p / e;
+  const perPersonVal = cost / n;
 
   liters.textContent = needL.toFixed(2);
   total.textContent = yen(cost);
@@ -97,16 +137,16 @@ function recalc() {
   saveState();
 }
 
-// ---- UIイベント ----
-addSeg.addEventListener('click', () => addSegment(""));
-clearSeg.addEventListener('click', () => { segmentsBox.innerHTML=""; addSegment(""); });
+// ---- イベント設定 ----
+addSeg.addEventListener('click', () => addSegment({checked: true}));
+clearSeg.addEventListener('click', () => { segmentsBox.innerHTML=""; addSegment({}); });
 
 [price, eff, people].forEach(el => el.addEventListener('input', recalc));
 
 resetBtn.addEventListener('click', ()=>{
   localStorage.removeItem('gas-calc');
   price.value = ""; eff.value = ""; people.value = 1;
-  segmentsBox.innerHTML = ""; addSegment("");
+  segmentsBox.innerHTML = ""; addSegment({});
   recalc();
 });
 
@@ -131,6 +171,5 @@ shareBtn.addEventListener('click', async ()=>{
 
 // ---- 起動 ----
 fromState(load('gas-calc', null));
-// 初回に区間がなければ1行追加
-if (!segmentsBox.querySelector('.seg')) addSegment("");
+if (!segmentsBox.querySelector('.seg')) addSegment({});
 recalc();

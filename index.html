@@ -12,18 +12,14 @@
   </header>
 
   <main class="container">
-    <!-- 入力 -->
+    <!-- 基本入力 -->
     <section class="card">
       <h2>基本入力</h2>
-
-      <!-- タイトル行 -->
       <div class="grid-3 titles">
         <div class="th">割り勘人数</div>
         <div class="th">燃費 (km/ℓ)</div>
         <div class="th">ガソリン単価 (円/ℓ)</div>
       </div>
-
-      <!-- 入力行 -->
       <div class="grid-3 inputs">
         <div>
           <input id="people" type="number" inputmode="numeric" step="1" min="1" value="1" aria-label="割り勘人数" />
@@ -40,6 +36,13 @@
     <!-- 区間入力 -->
     <section class="card">
       <h2>距離（km）</h2>
+      <div class="segments-title">
+        <span>選択</span>
+        <span>走行距離</span>
+        <span>スタート距離</span>
+        <span>エンド距離</span>
+        <span>削除</span>
+      </div>
       <div id="segments" class="segments"></div>
       <div class="segment-actions">
         <button id="addSeg" type="button">＋ 区間を追加</button>
