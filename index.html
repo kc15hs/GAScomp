@@ -21,10 +21,12 @@
       </div>
       <div class="grid-2 inputs">
         <div>
-          <input id="eff" type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="例: 15.0" aria-label="燃費 (km/ℓ)" />
+          <input id="eff" type="number" inputmode="decimal" step="0.1" min="0.1"
+                 placeholder="例: 15.0" aria-label="燃費 (km/ℓ)" />
         </div>
         <div>
-          <input id="price" type="number" inputmode="decimal" step="1" min="0" placeholder="例: 170" aria-label="ガソリン単価 (円/ℓ)" />
+          <input id="price" type="number" inputmode="decimal" step="1" min="0"
+                 placeholder="例: 170" aria-label="ガソリン単価 (円/ℓ)" />
         </div>
       </div>
     </section>
@@ -32,9 +34,11 @@
     <!-- 区間入力 -->
     <section class="card">
       <h2>距離（km）</h2>
+
+      <!-- タイトル行（MM/DD補足は削除済み） -->
       <div class="segments-title">
         <span>選択</span>
-        <span>日付<br><small>MM/DD</small></span>
+        <span>日付</span>
         <span>走行距離</span>
         <span>スタート距離</span>
         <span>エンド距離</span>
