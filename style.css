@@ -48,7 +48,7 @@ input[type=number], input[type=text], input[type=date]{
 }
 input::placeholder { color: #6d7280; }
 
-/* === 区間タイトル行（選択は現状の幅、他は 10:25:25:25:10:5 ） === */
+/* === 区間タイトル行 === */
 .segments-title{
   display: grid;
   grid-template-columns: 5% minmax(0,10fr) minmax(0,25fr) minmax(0,25fr) minmax(0,25fr) minmax(0,10fr) minmax(0,5fr);
@@ -61,14 +61,8 @@ input::placeholder { color: #6d7280; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
-/* タイトル揃え：日付・人数・削除は中央、距離3つは右寄せ */
-.segments-title > span:nth-child(2),
-.segments-title > span:nth-child(6),
-.segments-title > span:nth-child(7){ text-align: center; }
-.segments-title > span:nth-child(3),
-.segments-title > span:nth-child(4),
-.segments-title > span:nth-child(5){ text-align: right; }
 
 /* === 区間入力行 === */
 .segments{ display: grid; gap: 8px; }
@@ -77,6 +71,13 @@ input::placeholder { color: #6d7280; }
   display: grid;
   grid-template-columns: 5% minmax(0,10fr) minmax(0,25fr) minmax(0,25fr) minmax(0,25fr) minmax(0,10fr) minmax(0,5fr);
   gap: 8px;
+  align-items: center;
+}
+
+/* 先頭チェックボックス中央寄せ */
+.seg > :first-child{
+  display: flex;
+  justify-content: center;
   align-items: center;
 }
 .seg input[type=checkbox]{ transform: scale(1.15); }
@@ -91,9 +92,8 @@ input::placeholder { color: #6d7280; }
   min-width: 0;
 }
 
-/* 日付・人数・削除は中央寄せ（行） */
+/* 日付・削除列は中央寄せ */
 .seg > :nth-child(2),
-.seg > :nth-child(6),
 .seg > :nth-child(7){
   display: flex;
   justify-content: center;
@@ -106,17 +106,31 @@ input::placeholder { color: #6d7280; }
   position: absolute;
   inset: 0;
   opacity: 0;
-  pointer-events: none; /* テキスト欄クリックで showPicker() */
+  pointer-events: none;
 }
 .seg input.seg-date{ text-align: center; }
 
-/* 距離3項目は右寄せ（行の入力） */
+/* 距離3項目は右寄せ */
 .seg input.seg-km,
 .seg input.seg-start,
-.seg input.seg-end{ text-align: right; }
+.seg input.seg-end{
+  text-align: right;
+  -moz-appearance: textfield; /* Firefox用 */
+}
+.seg input.seg-km::-webkit-outer-spin-button,
+.seg input.seg-km::-webkit-inner-spin-button,
+.seg input.seg-start::-webkit-outer-spin-button,
+.seg input.seg-start::-webkit-inner-spin-button,
+.seg input.seg-end::-webkit-outer-spin-button,
+.seg input.seg-end::-webkit-inner-spin-button{
+  -webkit-appearance: none; /* Chrome, Safari */
+  margin: 0;
+}
 
-/* 割り勘人数は中央寄せ＆折返し防止 */
-.seg input.seg-people{ text-align: center; }
+/* 割り勘人数は右寄せ */
+.seg input.seg-people{
+  text-align: right;
+}
 
 /* 削除ボタン */
 .seg button{
@@ -170,7 +184,7 @@ input::placeholder { color: #6d7280; }
   .foot-note{ padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 }
 
-/* === スモール画面（比率維持で圧縮） === */
+/* === スモール画面対応 === */
 @media (max-width: 560px){
   .segments-title,
   .seg{
